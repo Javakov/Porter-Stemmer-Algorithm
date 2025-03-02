@@ -1,0 +1,54 @@
+package org.javakov;
+
+import org.javakov.algorithm.PorterStemmerRu;
+
+/**
+ * Главный класс для тестирования алгоритма стеммирования по методу Портера.
+ * Пример демонстрации работы стеммера для нескольких слов.
+ */
+public class Main {
+    public static void main(String[] args) {
+        // Пример текста для проверки стеммирования
+        String[] patterns = {
+                "PERFECTIVEGROUND: придумавши",
+                "ADJECTIVE: умными, красивее",
+                "PARTICIPLE: упавший, растущий",
+                "VERB: читал, видишь",
+                "NOUN: машина, историей, друзьями",
+                "REFLEXIVE: бояться, умыться",
+                "DER: уверенность, возможность",
+                "SUPERLATIVE: красивейший, сильнейший",
+                "I: земли, войны, книги",
+                "P: роль, жизнь, боль, дверь, мысль",
+                "NN: длинный, важный"
+        };
+
+        // Печать примеров с выделением в выводе
+        System.out.println("Примеры слов с их суффиксами:");
+        for (String pattern : patterns) {
+            String[] parts = pattern.split(":");
+            String label = parts[0].trim();
+            String words = parts[1].trim();
+            System.out.println(label + ": " + highlightWords(words));
+        }
+
+        // Пример стеммирования слов
+        String[] testWords = {"придумавши", "умными", "упавший", "читал", "машина"};
+        System.out.println("\nРезультаты стеммирования:");
+        for (String word : testWords) {
+            String stemmedWord = PorterStemmerRu.stem(word);
+            System.out.println(word + " -> " + stemmedWord);
+        }
+    }
+
+    /**
+     * Метод для выделения слов в выводе, чтобы они были выделены.
+     *
+     * @param words строка с примерами слов
+     * @return строка с выделенными словами
+     */
+    private static String highlightWords(String words) {
+        // Выделяет слова звездочками (для визуального выделения)
+        return words.replaceAll("(\\w+)", "*$1*");
+    }
+}
