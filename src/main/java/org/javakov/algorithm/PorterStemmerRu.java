@@ -3,13 +3,7 @@ package org.javakov.algorithm;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-/**
- * Алгоритм стеммирования по методу Портера для русского языка.
- * Этот класс реализует стеммирование слов на основе различных правил и суффиксов,
- * применяемых для уменьшения слов до их основы.
- */
 public class PorterStemmerRu {
-
     /**
      * Регулярное выражение для поиска совершенных глаголов и их форм.
      */
@@ -97,8 +91,7 @@ public class PorterStemmerRu {
      * @return основанное слово
      */
     public static String stem(String word) {
-        word = word.toLowerCase();
-        word = word.replace('ё', 'е');
+        word = word.toLowerCase().replace('ё', 'е');
 
         // Сопоставляем слово с регулярным выражением, которое разделяет слово на приставку и корень
         Matcher matcher = rootPattern.matcher(word);
@@ -106,6 +99,7 @@ public class PorterStemmerRu {
             // Извлекаем приставку (первую часть) и корень (вторую часть) из строки
             String prefix = matcher.group(1);
             String root = matcher.group(2);
+            if (root.isEmpty()) return word;
 
             // Удаляем суффиксы совершенного вида (например, "ив", "ивши", "вши", и т.д.)
             String temp = perfectiveGroundPattern.matcher(root).replaceFirst("");
@@ -138,21 +132,18 @@ public class PorterStemmerRu {
             root = iSuffixPattern.matcher(root).replaceFirst("");
 
             // Проверяем, является ли слово производным (например, "дружбы" -> "дружб")
-            if (derivationalPattern.matcher(root).matches()) {
+            Matcher derivMatcher = derivationalPattern.matcher(root);
+            if (derivMatcher.find()) {
                 // Удаляем производные суффиксы (например, "ость", "ность")
                 root = derivativeSuffixPattern.matcher(root).replaceFirst("");
             }
 
             // Удаляем суффикс "ь", если он есть
-            temp = softSignPattern.matcher(root).replaceFirst("");
-            if (temp.equals(root)) {
-                // Если суффикс "ь" не был удален, проверяем на превосходную степень
-                root = superlativePattern.matcher(root).replaceFirst("");
-                // Если слово в превосходной степени, заменяем "нн" на "н"
-                root = doubleNPattern.matcher(root).replaceFirst("н");
-            } else {
-                root = temp;
-            }
+            root = softSignPattern.matcher(root).replaceFirst("");
+            // проверяем на превосходную степень
+            root = superlativePattern.matcher(root).replaceFirst("");
+            // заменяем "нн" на "н"
+            root = doubleNPattern.matcher(root).replaceFirst("н");
 
             // Восстанавливаем полное слово: приставка + корень
             word = prefix + root;
