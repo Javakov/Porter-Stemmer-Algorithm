@@ -1,18 +1,45 @@
 package org.javakov.algorithm;
 
 public class PorterStemmerEn {
+    /**
+     * Буфер для хранения символов слова.
+     */
     private char[] b;
-    private int i,
-            i_end,
-            j, k;
+
+    /**
+     * Текущий индекс в буфере.
+     */
+    private int i;
+
+    /**
+     * Конечный индекс обработанного слова.
+     */
+    private int i_end;
+
+    /**
+     * Вспомогательные индексы для манипуляций с окончанием слова.
+     */
+    private int j, k;
+
+    /**
+     * Шаг увеличения размера буфера.
+     */
     private static final int INC = 50;
 
+    /**
+     * Конструктор инициализирует буфер и переменные.
+     */
     public PorterStemmerEn() {
         b = new char[INC];
         i = 0;
         i_end = 0;
     }
 
+    /**
+     * Добавляет одиночный символ в буфер.
+     *
+     * @param ch символ для добавления
+     */
     public void add(char ch) {
         if (i == b.length) {
             char[] new_b = new char[i + INC];
@@ -22,7 +49,12 @@ public class PorterStemmerEn {
         b[i++] = ch;
     }
 
-
+    /**
+     * Добавляет массив символов в буфер.
+     *
+     * @param w    массив символов
+     * @param wLen длина добавляемого массива
+     */
     public void add(char[] w, int wLen) {
         if (i + wLen >= b.length) {
             char[] new_b = new char[i + wLen + INC];
@@ -32,10 +64,21 @@ public class PorterStemmerEn {
         for (int c = 0; c < wLen; c++) b[i++] = w[c];
     }
 
+    /**
+     * Преобразует буфер в строку.
+     *
+     * @return обработанное слово в виде строки
+     */
     public String toString() {
         return new String(b, 0, i_end);
     }
 
+    /**
+     * Проверяет, является ли символ согласной.
+     *
+     * @param i индекс символа
+     * @return true, если символ - согласная, иначе false
+     */
     private boolean cons(int i) {
         return switch (b[i]) {
             case 'a', 'e', 'i', 'o', 'u' -> false;
@@ -44,6 +87,11 @@ public class PorterStemmerEn {
         };
     }
 
+    /**
+     * Вычисляет число последовательностей (СГ) в слове, где С - согласная, Г - гласная.
+     *
+     * @return количество последовательностей (СГ)
+     */
     private int m() {
         int n = 0;
         int i = 0;
@@ -70,26 +118,46 @@ public class PorterStemmerEn {
         }
     }
 
+    /**
+     * Проверяет, содержит ли слово хотя бы одну гласную.
+     *
+     * @return true, если в слове есть гласная, иначе false
+     */
     private boolean vowelinstem() {
-        int i;
-        for (i = 0; i <= j; i++) if (!cons(i)) return true;
+        for (int i = 0; i <= j; i++) if (!cons(i)) return true;
         return false;
     }
 
+    /**
+     * Проверяет, содержит ли слово удвоенную конечную согласную.
+     *
+     * @param j индекс символа
+     * @return true, если два последних символа одинаковы и являются согласными
+     */
     private boolean doublec(int j) {
         if (j < 1) return false;
         if (b[j] != b[j - 1]) return false;
         return cons(j);
     }
 
+    /**
+     * Проверяет, является ли слово в виде CVC (согласная-гласная-согласная) с исключениями.
+     *
+     * @param i индекс символа
+     * @return true, если слово имеет формат CVC
+     */
     private boolean cvc(int i) {
         if (i < 2 || !cons(i) || cons(i - 1) || !cons(i - 2)) return false;
-        {
-            int ch = b[i];
-            return ch != 'w' && ch != 'x' && ch != 'y';
-        }
+        int ch = b[i];
+        return ch != 'w' && ch != 'x' && ch != 'y';
     }
 
+    /**
+     * Проверяет, оканчивается ли слово на заданную строку.
+     *
+     * @param s строка-суффикс
+     * @return true, если слово оканчивается на s, иначе false
+     */
     private boolean ends(String s) {
         int l = s.length();
         int o = k - l + 1;
@@ -99,6 +167,11 @@ public class PorterStemmerEn {
         return true;
     }
 
+    /**
+     * Устанавливает новый суффикс для слова.
+     *
+     * @param s новая строка-суффикс
+     */
     private void sett(String s) {
         int l = s.length();
         int o = j + 1;
@@ -106,31 +179,36 @@ public class PorterStemmerEn {
         k = j + l;
     }
 
+    /**
+     * Заменяет окончание слова на новое, если выполняется условие m() > 0.
+     *
+     * @param s новая строка-суффикс
+     */
     private void r(String s) {
         if (m() > 0) sett(s);
     }
 
-    /** step1() gets rid of plurals and -ed or -ing. e.g.
-
-           caresses  ->  caress
-           ponies    ->  poni
-           ties      ->  ti
-           caress    ->  caress
-           cats      ->  cat
-
-           feed      ->  feed
-           agreed    ->  agree
-           disabled  ->  disable
-
-           matting   ->  mat
-           mating    ->  mate
-           meeting   ->  meet
-           milling   ->  mill
-           messing   ->  mess
-
-           meetings  ->  meet
-
-    */
+    /**
+     * step1() удаляет формы множественного числа и окончания -ed или -ing. Например:
+     * <p>
+     * caresses  ->  caress
+     * ponies    ->  poni
+     * ties      ->  ti
+     * caress    ->  caress
+     * cats      ->  cat
+     * <p>
+     * feed      ->  feed
+     * agreed    ->  agree
+     * disabled  ->  disable
+     * <p>
+     * matting   ->  mat
+     * mating    ->  mate
+     * meeting   ->  meet
+     * milling   ->  mill
+     * messing   ->  mess
+     * <p>
+     * meetings  ->  meet
+     */
     private void step1() {
         if (b[k] == 's') {
             if (ends("sses")) k -= 2;
@@ -154,15 +232,17 @@ public class PorterStemmerEn {
         }
     }
 
-    /** step2() turns terminal y to i when there is another vowel in the stem. */
+    /**
+     * step2() заменяет конечную y на i, если в корне есть другая гласная.
+     */
     private void step2() {
         if (ends("y") && vowelinstem()) b[k] = 'i';
     }
 
     /**
-     * step3() maps double suffices to single ones. so -ization ( = -ize plus
-     * -ation) maps to -ize etc. note that the string before the suffix must give
-     * m() > 0.
+     * step3() сокращает двойные суффиксы до одиночных. Например, -ization
+     * ( = -ize + -ation) превращается в -ize и т. д.
+     * Перед суффиксом m() должно быть > 0.
      */
     private void step3() {
         if (k == 0) return;
@@ -270,7 +350,8 @@ public class PorterStemmerEn {
     }
 
     /**
-     * step4() deals with -ic-, -full, -ness etc. similar strategy to step3.
+     * step4() обрабатывает окончания -ic-, -full, -ness и т. д.
+     * Используется аналогичная стратегия, как в step3.
      */
     private void step4() {
         switch (b[k]) {
@@ -314,7 +395,7 @@ public class PorterStemmerEn {
     }
 
     /**
-     * step5() takes off -ant, -ence etc., in context <c>vcvc<v>.
+     * step5() удаляет окончания -ant, -ence и другие в контексте <c>vcvc<v>.
      */
     private void step5() {
         if (k == 0) return;
@@ -369,7 +450,7 @@ public class PorterStemmerEn {
     }
 
     /**
-     * step6() removes a final -e if m() > 1.
+     * step6() удаляет конечную -e, если m() > 1.
      */
     private void step6() {
         j = k;
